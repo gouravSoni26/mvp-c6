@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Feed Curator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Learning Context</a>
+        <a href="/sources">Sources</a>
+        <a href="/digest/preview">Digest Preview</a>
+    </nav>
+
+    <div class="container">
+        <h1>Learning Context</h1>
+        <p style="color: #888; margin-bottom: 1rem;">Configure your learning goals to personalize your daily digest.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        {% if precision is not none %}
+        <div class="card">
+            <h2>Digest Precision (7-day)</h2>
+            {% set pct = (precision * 100)|round|int %}
+            <span class="precision-badge {% if pct >= 80 %}precision-good{% elif pct >= 60 %}precision-ok{% else %}precision-low{% endif %}">
+                {{ pct }}% useful
+            </span>
+            {% if pct < 60 %}
+            <p style="margin-top: 0.5rem; color: #dc2626; font-size: 0.85rem;">
+                Precision is low. Consider updating your learning goals and project context below.
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/context">
+            <div class="card">
+                <h2>Goals & Project</h2>
+
+                <label for="learning_goals">Learning Goals</label>
+                <div class="hint">What are you trying to learn? Be specific about topics and outcomes.</div>
+                <textarea id="learning_goals" name="learning_goals">{{ ctx.learning_goals or '' }}</textarea>
+
+                <label for="project_context">Active Project Context</label>
+                <div class="hint">What are you building? Include deadlines and specific needs.</div>
+                <textarea id="project_context" name="project_context">{{ ctx.project_context or '' }}</textarea>
+
+                <label for="skill_levels_text">Skill Levels</label>
+                <div class="hint">One per line, format: "Topic: beginner/intermediate/advanced"</div>
+                <textarea id="skill_levels_text" name="skill_levels_text">{{ ctx.skill_levels_text or '' }}</textarea>
+            </div>
+
+            <div class="card">
+                <h2>Preferences</h2>
+
+                <label for="digest_format">Digest Format</label>
+                <select id="digest_format" name="digest_format">
+                    <option value="top_3" {% if ctx.digest_format == 'top_3' %}selected{% endif %}>Top 3 Must-Reads</option>
+                    <option value="grouped_by_source" {% if ctx.digest_format == 'grouped_by_source' %}selected{% endif %}>Grouped by Source</option>
+                    <option value="themed_by_topic" {% if ctx.digest_format == 'themed_by_topic' %}selected{% endif %}>Themed by Topic</option>
+                </select>
+
+                <label for="learning_style">Learning Style</label>
+                <select id="learning_style" name="learning_style">
+                    <option value="build_first" {% if ctx.learning_style == 'build_first' %}selected{% endif %}>Build First (code examples, demos)</option>
+                    <option value="theory_first" {% if ctx.learning_style == 'theory_first' %}selected{% endif %}>Theory First (papers, deep dives)</option>
+                    <option value="video_learner" {% if ctx.learning_style == 'video_learner' %}selected{% endif %}>Video Learner (tutorials, walkthroughs)</option>
+                </select>
+
+                <label for="depth_preference">Depth Preference</label>
+                <select id="depth_preference" name="depth_preference">
+                    <option value="quick_wins" {% if ctx.depth_preference == 'quick_wins' %}selected{% endif %}>Quick Wins</option>
+                    <option value="deep_dives" {% if ctx.depth_preference == 'deep_dives' %}selected{% endif %}>Deep Dives</option>
+                    <option value="mixed_with_flags" {% if ctx.depth_preference == 'mixed_with_flags' %}selected{% endif %}>Mixed with Flags</option>
+                </select>
+
+                <label for="consumption_habits">Content Type Preference</label>
+                <select id="consumption_habits" name="consumption_habits">
+                    <option value="threads" {% if ctx.consumption_habits == 'threads' %}selected{% endif %}>Threads</option>
+                    <option value="long_form" {% if ctx.consumption_habits == 'long_form' %}selected{% endif %}>Long Form</option>
+                    <option value="videos" {% if ctx.consumption_habits == 'videos' %}selected{% endif %}>Videos</option>
+                    <option value="mixed" {% if ctx.consumption_habits == 'mixed' %}selected{% endif %}>Mixed</option>
+                </select>
+
+                <label for="time_availability">Time Available per Day</label>
+                <input type="text" id="time_availability" name="time_availability" value="{{ ctx.time_availability or '30 mins/day' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Learning Context</button>
+        </form>
+    </div>
+</body>
+</html>

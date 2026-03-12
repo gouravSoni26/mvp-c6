@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Logged</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container" style="text-align: center; margin-top: 4rem;">
+        <div class="card">
+            {% if rating == 'useful' %}
+            <h1>Thanks! Marked as useful.</h1>
+            <p style="color: #888; margin-top: 0.5rem;">This helps improve your future digests.</p>
+            {% else %}
+            <h1>Got it. Marked as not useful.</h1>
+            <p style="color: #888; margin-top: 0.5rem;">We'll adjust future recommendations accordingly.</p>
+            {% endif %}
+            <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Update Learning Context</a>
+        </div>
+    </div>
+</body>
+</html>

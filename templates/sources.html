@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Sources</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Learning Context</a>
+        <a href="/sources">Sources</a>
+        <a href="/digest/preview">Digest Preview</a>
+    </nav>
+
+    <div class="container">
+        <h1>Content Sources</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <div class="card">
+            <h2>Add Source</h2>
+            <form method="POST" action="/sources">
+                <label for="type">Type</label>
+                <select id="type" name="type">
+                    <option value="rss">RSS Feed</option>
+                    <option value="twitter_list">Twitter List</option>
+                    <option value="youtube_channel">YouTube Channel</option>
+                </select>
+
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g., Ben's Bites">
+
+                <label for="url">URL / Feed URL</label>
+                <input type="text" id="url" name="url" placeholder="e.g., https://feed.example.com/rss">
+
+                <button type="submit" class="btn btn-primary">Add Source</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Current Sources</h2>
+            {% if sources %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>URL</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sources %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.type }}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.url }}</td>
+                        <td>
+                            <form method="POST" action="/sources/{{ s.id }}/delete" style="display: inline;">
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #888;">No sources configured yet. Add your first source above.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
