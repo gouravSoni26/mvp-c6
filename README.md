@@ -1,6 +1,6 @@
 # AI-Powered Learning Feed Curator
 
-A personal content curation system that ingests from Twitter, newsletters (RSS), and GitHub Trending, scores content against your learning goals using GPT-4o, and delivers a daily email digest with feedback tracking.
+A personal content curation system that ingests from Twitter, newsletters (RSS), and GitHub Trending, scores content against your learning goals using Groq (gpt-oss-120b), and delivers a daily email digest with feedback tracking.
 
 ## How It Works
 
@@ -10,10 +10,10 @@ GitHub Actions (daily 6 AM UTC)
   -> Load your Learning Context from Supabase
   -> Ingest from Twitter (Apify) + RSS feeds + GitHub Trending
   -> Deduplicate by URL
-  -> Score each item 0-10 with GPT-4o against your goals
+  -> Score each item 0-10 with Groq (gpt-oss-120b) against your goals
   -> Build HTML email: Top 3 Must-Reads + remaining (score >= 5.0)
   -> Send via Resend
-  -> Track costs per service (OpenAI, Apify, Resend)
+  -> Track costs per service (Groq, Apify, Resend)
   -> Track precision from previous feedback
 ```
 
@@ -28,7 +28,7 @@ Each email includes **Useful / Not Useful** buttons per item. Clicking them reco
 | Learning Context UI | Streamlit | Streamlit Community Cloud |
 | Database | PostgreSQL | Supabase (free tier) |
 | Email | Resend | API (free 3K/month) |
-| LLM Scoring | GPT-4o | OpenAI API |
+| LLM Scoring | gpt-oss-120b | Groq API (free tier) |
 | Twitter Scraping | Apify `tweet-scraper` | Apify (free $5/month) |
 | Newsletters | RSS via `feedparser` | Built-in |
 
@@ -45,7 +45,7 @@ src/
     twitter.py           # Apify tweet-scraper (lists + handles)
     youtube.py           # YouTube Data API v3 (optional)
   scoring/
-    scorer.py            # GPT-4o batch scoring (12 items/batch)
+    scorer.py            # Groq batch scoring (12 items/batch)
   digest/
     builder.py           # HTML email builder
     templates/
@@ -102,7 +102,8 @@ Fill in your keys:
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (bypasses RLS) |
 | `SUPABASE_ANON_KEY` | Supabase anon key (for Streamlit) |
-| `OPENAI_API_KEY` | OpenAI API key |
+| `GROQ_API_KEY` | Groq API key (console.groq.com) |
+| `GROQ_MODEL` | Model to use (default: `openai/gpt-oss-120b`) |
 | `APIFY_API_TOKEN` | Apify API token |
 | `RESEND_API_KEY` | Resend API key |
 | `DIGEST_RECIPIENT_EMAIL` | Your email address |
@@ -180,19 +181,19 @@ Add all env vars as **repository secrets** under Settings -> Secrets -> Actions.
 
 ## Cost Tracking & Budget Limits
 
-The pipeline tracks costs for all three paid services (OpenAI, Apify, Resend) and enforces configurable budget limits to prevent runaway spending.
+The pipeline tracks costs for all three paid services (Groq, Apify, Resend) and enforces configurable budget limits to prevent runaway spending.
 
 | Service | Unit | Cost |
 |---------|------|------|
-| OpenAI GPT-4o input | 1K tokens | $0.0025 |
-| OpenAI GPT-4o output | 1K tokens | $0.01 |
+| Groq gpt-oss-120b input | 1M tokens | $0.15 |
+| Groq gpt-oss-120b output | 1M tokens | $0.75 |
 | Apify tweet-scraper | per run | ~$0.10-0.50 |
 | Resend | per email | $0.00028 (after free tier) |
 
 **Budget enforcement** happens at pipeline start:
 - If **monthly budget** is exceeded, the entire pipeline is skipped
 - If remaining monthly budget can't cover an Apify run (~$0.50), Twitter ingestion is skipped
-- If **daily budget** is exceeded, OpenAI scoring is skipped
+- If **daily budget** is exceeded, Groq scoring is skipped
 
 Costs are stored per run in `digest_log` and visible in the Streamlit dashboard.
 
@@ -200,7 +201,7 @@ Costs are stored per run in `digest_log` and visible in the Streamlit dashboard.
 
 - **Feedback via GET requests** — email clients block POST/JS, so feedback links are simple GET URLs
 - **Graceful degradation** — if any source fails, the pipeline continues with remaining sources
-- **Batch scoring** — 12 items per GPT-4o call to reduce API costs (~$0.02-0.05/day)
+- **Batch scoring** — 12 items per Groq call, extremely cost-effective (~$0.001-0.005/day)
 - **Budget gates** — daily and monthly limits prevent cost overruns, with progressive degradation (skip Twitter first, then scoring)
 - **Lazy config loading** — `get_settings()` with `@lru_cache` so tests run without env vars
 - **RT filtering** — retweets are excluded from scoring to reduce noise

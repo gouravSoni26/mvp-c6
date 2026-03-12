@@ -92,7 +92,7 @@ def run_pipeline():
                 unique_items.append(item)
         logger.info(f"After dedup: {len(unique_items)} unique items")
 
-        # 4. Score with GPT-4o — budget gated
+        # 4. Score with Groq — budget gated
         scored_items = []
         if daily_cost + tracker.total_cost_usd < settings.daily_budget_usd:
             scored_items = score_items(unique_items, context, tracker)
@@ -127,17 +127,17 @@ def run_pipeline():
             items_ingested=len(all_items),
             items_scored=len(scored_items),
             items_emailed=len(included_ids) if email_sent else 0,
-            cost_openai_usd=tracker.openai_cost_usd,
+            cost_llm_usd=tracker.groq_cost_usd,
             cost_apify_usd=tracker.apify_cost_usd,
             cost_resend_usd=tracker.resend_cost_usd,
             cost_total_usd=tracker.total_cost_usd,
-            openai_tokens_used=tracker.openai_total_tokens,
+            llm_tokens_used=tracker.groq_total_tokens,
         )
 
         # 10. Log cost summary
         new_monthly = monthly_cost + tracker.total_cost_usd
         logger.info(
-            f"Cost: OpenAI=${tracker.openai_cost_usd:.4f} ({tracker.openai_total_tokens} tokens), "
+            f"Cost: Groq=${tracker.groq_cost_usd:.4f} ({tracker.groq_total_tokens} tokens), "
             f"Apify=${tracker.apify_cost_usd:.4f}, Resend=${tracker.resend_cost_usd:.4f} | "
             f"Total=${tracker.total_cost_usd:.4f} | Monthly=${new_monthly:.4f}/${settings.monthly_budget_usd:.2f}"
         )
@@ -149,11 +149,11 @@ def run_pipeline():
             today,
             status="failed",
             error_message=str(e),
-            cost_openai_usd=tracker.openai_cost_usd,
+            cost_llm_usd=tracker.groq_cost_usd,
             cost_apify_usd=tracker.apify_cost_usd,
             cost_resend_usd=tracker.resend_cost_usd,
             cost_total_usd=tracker.total_cost_usd,
-            openai_tokens_used=tracker.openai_total_tokens,
+            llm_tokens_used=tracker.groq_total_tokens,
         )
         raise
 

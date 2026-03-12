@@ -9,8 +9,9 @@ class Settings(BaseSettings):
     supabase_service_role_key: str
     supabase_anon_key: str = ""
 
-    # OpenAI
-    openai_api_key: str
+    # Groq (OpenAI-compatible API)
+    groq_api_key: str
+    groq_model: str = "openai/gpt-oss-120b"
 
     # Apify
     apify_api_token: str = ""

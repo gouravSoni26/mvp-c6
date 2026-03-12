@@ -38,14 +38,14 @@ python -m pytest tests/ -v
 
 ## Architecture
 
-Single-user AI content curator: ingests RSS/YouTube/Twitter → scores with GPT-4o → sends daily email digest via Resend.
+Single-user AI content curator: ingests RSS/YouTube/Twitter → scores with Groq (gpt-oss-120b) → sends daily email digest via Resend.
 
 - `src/config.py` — Pydantic settings, env vars, budget limits
 - `src/models.py` — ContentItem, ScoredItem, LearningContext, CostTracker
 - `src/db.py` — Supabase CRUD helpers
 - `src/pipeline.py` — Main daily orchestrator with budget gates
 - `src/ingestion/` — Content fetchers (newsletters.py, youtube.py, twitter.py)
-- `src/scoring/scorer.py` — Batched GPT-4o relevance scoring (12 items/batch)
+- `src/scoring/scorer.py` — Batched Groq (gpt-oss-120b) relevance scoring (12 items/batch)
 - `src/digest/builder.py` — Selects top items, builds HTML email
 - `src/delivery/emailer.py` — Sends digest + alert emails via Resend
 - `src/feedback/api.py` — FastAPI: /feedback, /health, /stats, /trigger

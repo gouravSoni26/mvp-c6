@@ -59,30 +59,30 @@ class DigestLog(BaseModel):
     error_message: Optional[str] = None
 
 
-# Pricing constants
-OPENAI_GPT4O_INPUT_PER_1K = 0.0025
-OPENAI_GPT4O_OUTPUT_PER_1K = 0.01
+# Pricing constants (Groq gpt-oss-120b)
+GROQ_INPUT_PER_1K = 0.00015
+GROQ_OUTPUT_PER_1K = 0.00075
 RESEND_COST_PER_EMAIL = 0.00028  # after free tier
 
 
 @dataclass
 class CostTracker:
-    openai_prompt_tokens: int = 0
-    openai_completion_tokens: int = 0
-    openai_cost_usd: float = 0.0
+    groq_prompt_tokens: int = 0
+    groq_completion_tokens: int = 0
+    groq_cost_usd: float = 0.0
     apify_cost_usd: float = 0.0
     resend_emails_sent: int = 0
     resend_cost_usd: float = 0.0
 
     @property
     def total_cost_usd(self) -> float:
-        return self.openai_cost_usd + self.apify_cost_usd + self.resend_cost_usd
+        return self.groq_cost_usd + self.apify_cost_usd + self.resend_cost_usd
 
-    def add_openai_usage(self, prompt_tokens: int, completion_tokens: int) -> None:
-        self.openai_prompt_tokens += prompt_tokens
-        self.openai_completion_tokens += completion_tokens
-        cost = (prompt_tokens * OPENAI_GPT4O_INPUT_PER_1K + completion_tokens * OPENAI_GPT4O_OUTPUT_PER_1K) / 1000
-        self.openai_cost_usd += cost
+    def add_llm_usage(self, prompt_tokens: int, completion_tokens: int) -> None:
+        self.groq_prompt_tokens += prompt_tokens
+        self.groq_completion_tokens += completion_tokens
+        cost = (prompt_tokens * GROQ_INPUT_PER_1K + completion_tokens * GROQ_OUTPUT_PER_1K) / 1000
+        self.groq_cost_usd += cost
 
     def add_apify_cost(self, cost_usd: float) -> None:
         self.apify_cost_usd += cost_usd
@@ -92,5 +92,5 @@ class CostTracker:
         self.resend_cost_usd = self.resend_emails_sent * RESEND_COST_PER_EMAIL
 
     @property
-    def openai_total_tokens(self) -> int:
-        return self.openai_prompt_tokens + self.openai_completion_tokens
+    def groq_total_tokens(self) -> int:
+        return self.groq_prompt_tokens + self.groq_completion_tokens

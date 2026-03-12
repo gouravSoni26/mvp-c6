@@ -12,11 +12,12 @@ BATCH_SIZE = 12
 
 
 def score_items(items: list[ContentItem], context: LearningContext, tracker: CostTracker | None = None) -> list[ScoredItem]:
-    """Score content items against the learning context using GPT-4o."""
+    """Score content items against the learning context using Groq."""
     if not items:
         return []
 
-    client = OpenAI(api_key=get_settings().openai_api_key)
+    settings = get_settings()
+    client = OpenAI(api_key=settings.groq_api_key, base_url="https://api.groq.com/openai/v1")
     scored: list[ScoredItem] = []
 
     # Process in batches
@@ -44,12 +45,13 @@ def score_items(items: list[ContentItem], context: LearningContext, tracker: Cos
 
 
 def _score_batch(client: OpenAI, items: list[ContentItem], context: LearningContext, tracker: CostTracker | None = None) -> list[ScoredItem]:
-    """Score a batch of items with a single GPT-4o call."""
+    """Score a batch of items with a single Groq API call."""
+    settings = get_settings()
     system_prompt = _build_system_prompt(context)
     user_prompt = _build_user_prompt(items)
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=settings.groq_model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -60,8 +62,8 @@ def _score_batch(client: OpenAI, items: list[ContentItem], context: LearningCont
 
     # Track token usage
     if tracker and response.usage:
-        tracker.add_openai_usage(response.usage.prompt_tokens, response.usage.completion_tokens)
-        logger.debug(f"OpenAI tokens: {response.usage.prompt_tokens} prompt + {response.usage.completion_tokens} completion")
+        tracker.add_llm_usage(response.usage.prompt_tokens, response.usage.completion_tokens)
+        logger.debug(f"Groq tokens: {response.usage.prompt_tokens} prompt + {response.usage.completion_tokens} completion")
 
     content = response.choices[0].message.content
     result = json.loads(content)

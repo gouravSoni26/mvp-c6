@@ -125,11 +125,11 @@ def upsert_digest_log(
     items_emailed: int = 0,
     precision_rate: Optional[float] = None,
     error_message: Optional[str] = None,
-    cost_openai_usd: float = 0,
+    cost_llm_usd: float = 0,
     cost_apify_usd: float = 0,
     cost_resend_usd: float = 0,
     cost_total_usd: float = 0,
-    openai_tokens_used: int = 0,
+    llm_tokens_used: int = 0,
     client: Optional[Client] = None,
 ) -> None:
     client = client or get_client()
@@ -139,11 +139,11 @@ def upsert_digest_log(
         "items_ingested": items_ingested,
         "items_scored": items_scored,
         "items_emailed": items_emailed,
-        "cost_openai_usd": cost_openai_usd,
+        "cost_openai_usd": cost_llm_usd,  # DB column name kept for backward compat
         "cost_apify_usd": cost_apify_usd,
         "cost_resend_usd": cost_resend_usd,
         "cost_total_usd": cost_total_usd,
-        "openai_tokens_used": openai_tokens_used,
+        "openai_tokens_used": llm_tokens_used,  # DB column name kept for backward compat
     }
     if precision_rate is not None:
         row["precision_rate"] = float(precision_rate)
