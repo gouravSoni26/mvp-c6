@@ -76,8 +76,8 @@ tests/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/Siddhant-Goswami/MVP-c6-test.git
-cd MVP-c6-test
+git clone <your-repo-url>
+cd mvp-c6
 pip install -r requirements.txt
 ```
 

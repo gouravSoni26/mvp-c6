@@ -1,11 +1,56 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Plan & Review
+
 ### Before starting work
-- Always in plan mode to make a plan
-- After get the plan, make sure you Write the plan to .claude/tasks/TASK_NAME.md.
-- The plan should be a detailed implementation plan and the reasoning behind them, as well as tasks broken down.
-- If the task require external knowledge or certain package, also research to get latest knowledge (Use Task tool for research)
-- Don't over plan it, always think MVP.
-- Once you write the plan, firstly ask me to review it. Do not continue until I approve the plan.
+- Always enter plan mode to make a plan first.
+- Write the plan to `.claude/tasks/TASK_NAME.md`.
+- The plan should be a detailed implementation plan with reasoning and broken-down tasks.
+- If the task requires external knowledge or a certain package, research to get latest knowledge (use Task tool).
+- Don't over-plan — always think MVP.
+- Once the plan is written, ask for review first. Do not continue until the plan is approved.
+
 ### While implementing
-- You should update the plan as you work.
-- After you complete tasks in the plan, you should update and append detailed descriptions of the changes you made, so following tasks can be easily hand over to other engineers.
+- Update the plan as you work.
+- After completing tasks in the plan, append detailed descriptions of changes made so following tasks can be handed over to other engineers.
+
+## Build & Run
+
+```bash
+# Setup
+pip install -r requirements.txt
+cp .env.example .env   # then fill in API keys
+
+# Run the full pipeline
+python -m src.pipeline
+
+# Start the feedback API
+uvicorn src.feedback.api:app --reload
+
+# Start the Streamlit UI
+streamlit run streamlit_app/app.py
+
+# Run tests
+python -m pytest tests/ -v
+```
+
+## Architecture
+
+Single-user AI content curator: ingests RSS/YouTube/Twitter → scores with GPT-4o → sends daily email digest via Resend.
+
+- `src/config.py` — Pydantic settings, env vars, budget limits
+- `src/models.py` — ContentItem, ScoredItem, LearningContext, CostTracker
+- `src/db.py` — Supabase CRUD helpers
+- `src/pipeline.py` — Main daily orchestrator with budget gates
+- `src/ingestion/` — Content fetchers (newsletters.py, youtube.py, twitter.py)
+- `src/scoring/scorer.py` — Batched GPT-4o relevance scoring (12 items/batch)
+- `src/digest/builder.py` — Selects top items, builds HTML email
+- `src/delivery/emailer.py` — Sends digest + alert emails via Resend
+- `src/feedback/api.py` — FastAPI: /feedback, /health, /stats, /trigger
+- `src/monitoring/precision.py` — Precision tracking + low-precision alerts
+- `streamlit_app/app.py` — Learning Context web form
+- `scripts/` — DB init SQL, migration, seed script
+- `tests/` — pytest test suite
+- `.github/workflows/daily_digest.yml` — Daily cron (6 AM UTC) + manual trigger
