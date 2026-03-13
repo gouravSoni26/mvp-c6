@@ -1,6 +1,9 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -42,7 +45,7 @@ class Settings(BaseSettings):
     daily_budget_usd: float = 1.00
     monthly_budget_usd: float = 15.00
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": str(PROJECT_ROOT / ".env"), "env_file_encoding": "utf-8"}
 
     @property
     def twitter_lists(self) -> list[str]:
